@@ -54,7 +54,7 @@
         
         /* Dashboard Container */
         .dashboard-container {
-            max-width: 900px;
+            max-width: 800px;
             width: 100%;
             margin: 0 auto;
             background: white;
@@ -183,81 +183,6 @@
         .prayer-option:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Manual Prayer Cards */
-        .manual-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: 1px solid #cbd5e1;
-            transition: all 0.2s ease;
-            margin-bottom: 1rem;
-        }
-        
-        .manual-card:hover {
-            border-color: #6366f1;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1);
-        }
-        
-        .manual-title {
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .manual-title i {
-            color: #6366f1;
-        }
-        
-        .manual-options {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-        
-        .manual-option-btn {
-            padding: 0.625rem 1.25rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 40px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #475569;
-        }
-        
-        .manual-option-btn:hover {
-            border-color: #6366f1;
-            background: #eef2ff;
-        }
-        
-        .manual-option-btn.selected {
-            background: #6366f1;
-            border-color: #6366f1;
-            color: white;
-        }
-        
-        .manual-text-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            background: white;
-        }
-        
-        .manual-text-input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
         
         /* Default border colors based on option type */
@@ -391,21 +316,6 @@
             border: 1px solid #05966920;
         }
         
-        /* Section Headers */
-        .section-header {
-            margin: 1.5rem 0 1rem 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #374151;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .section-header i {
-            color: #6366f1;
-        }
-        
         /* Responsive */
         @media (max-width: 640px) {
             .prayer-title {
@@ -421,10 +331,6 @@
             .dashboard-container {
                 padding: 1rem;
             }
-            
-            .manual-title {
-                font-size: 1.1rem;
-            }
         }
         
         /* Loading Spinner */
@@ -439,14 +345,6 @@
         
         /* Prayer Grid */
         .prayers-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Manual Prayers Container */
-        .manual-prayers-container {
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -471,12 +369,10 @@
             background: white;
             border-radius: 24px;
             padding: 1.5rem;
-            max-width: 400px;
+            max-width: 300px;
             width: 90%;
             text-align: center;
             animation: fadeIn 0.3s ease;
-            max-height: 80vh;
-            overflow-y: auto;
         }
         
         @keyframes fadeIn {
@@ -516,10 +412,6 @@
         .custom-alert-message {
             color: #6b7280;
             margin-bottom: 1.5rem;
-            max-height: 300px;
-            overflow-y: auto;
-            text-align: left;
-            padding: 0 0.5rem;
         }
         
         .custom-alert-btn {
@@ -536,44 +428,12 @@
         .custom-alert-btn:hover {
             background: #047857;
         }
-        
-        /* Loading overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-        
-        .loading-spinner {
-            background: white;
-            padding: 2rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        
-        .loading-spinner i {
-            font-size: 2rem;
-            color: #059669;
-            margin-bottom: 1rem;
-        }
     </style>
 </head>
 <body>
     <!-- Login Page -->
     <div id="loginPage" class="login-container">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
-                <i class="fas fa-mosque text-emerald-600"></i>
-                <span>Tharbiyya</span>
-            </h1>
             <p class="text-sm text-gray-500 mt-2">Daily Prayer Tracker</p>
         </div>
         
@@ -663,12 +523,6 @@
         
         <!-- Prayer Form -->
         <form id="prayerForm">
-            <!-- Mandatory 5 Daily Prayers Section -->
-            <div class="section-header">
-                <i class="fas fa-mosque"></i>
-                <span>5 Daily Prayers (Required)</span>
-            </div>
-            
             <div class="prayers-container">
                 <!-- Subh (Fajr) Prayer - First -->
                 <div class="prayer-card">
@@ -773,17 +627,6 @@
                         </button>
                     </div>
                     <input type="hidden" name="isha" id="isha" required>
-                </div>
-            </div>
-            
-            <!-- Manual Prayers Section -->
-            <div id="manualPrayersSection" class="hidden">
-                <div class="section-header">
-                    <i class="fas fa-pencil-alt"></i>
-                    <span>Additional Prayers / Activities</span>
-                </div>
-                <div id="manualPrayersContainer" class="manual-prayers-container">
-                    <!-- Manual prayers will be dynamically loaded here -->
                 </div>
             </div>
             
