@@ -1,6 +1,6 @@
 // ============================================
 // THARBIYYA - Prayer Tracker
-// 5 Daily Prayers Tracker + Manual Prayers
+// 5 Daily Prayers Tracker
 // Values: Adā' = 2, Qaḍā' = 1, No = 0
 // Order: Subh, Zuhr, Asr, Magrib, Isha
 // ============================================
@@ -11,27 +11,22 @@ let currentClassSheet = null;
 let currentDate = null;
 let usersDataCache = null; // Cache for user data
 let isLoadingUsers = false; // Prevent multiple simultaneous loads
-let manualPrayersConfig = null; // Cache for manual prayers config
-let manualPrayersCache = new Map(); // Cache for manual prayers by date
 
 // Google Sheets CSV URL for user credentials
-const USER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=0&single=true&output=csv";
-
-// Manual Prayers Configuration CSV URL
-const MANUAL_PRAYERS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=1206831058&single=true&output=csv";
+const USER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=0&single=true&output=csv";
 
 // Class-specific sheet URLs for checking existing submissions
 const CLASS_URLS = {
-    1: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=489329760&single=true&output=csv",
-    2: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=428928738&single=true&output=csv",
-    3: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=1221669068&single=true&output=csv",
-    4: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=217652018&single=true&output=csv",
-    5: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=1691881671&single=true&output=csv",
+    1: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=489329760&single=true&output=csv",
+    2: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=428928738&single=true&output=csv",
+    3: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=1221669068&single=true&output=csv",
+    4: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=217652018&single=true&output=csv",
+    5: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=1691881671&single=true&output=csv",
     6: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=1246984609&single=true&output=csv",
-    7: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=469514472&single=true&output=csv",
-    8: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=272645470&single=true&output=csv",
-    9: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=1743514473&single=true&output=csv",
-    10: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSOGrONCLJ53Hf3jKE7VA7ro-yZmlzc_lFy9CxKvL_8VBuXRQp7hZxLjUpy0wmf28TYAn2HQ-uaV5r/pub?gid=820085037&single=true&output=csv"
+    7: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=469514472&single=true&output=csv",
+    8: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=272645470&single=true&output=csv",
+    9: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=1743514473&single=true&output=csv",
+    10: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR3si9RbqEoltl_NCW_TzNBlP3QCHE6kWnAQQIZwzebnnp4dk2x-hAQHj4qk534BZxWMYyMazm4zm3m/pub?gid=820085037&single=true&output=csv"
 };
 
 // Cache for submission checks to prevent repeated API calls
@@ -43,7 +38,7 @@ const submissionCache = new Map();
 class GoogleSheetsAPI {
     constructor() {
         // IMPORTANT: Replace this URL with your Google Apps Script Web App URL
-        this.apiUrl = "https://script.google.com/macros/s/AKfycbxBAPm8Bij4zZvfvirtV5MWwSq6ncTVcYRyzeZsqCmrqh1JOPiSGVcC81WaRZxWRcwAyA/exec";
+        this.apiUrl = "https://script.google.com/macros/s/AKfycbw0KTdIVjwXHA3b-JDIpgH7W0TwfrluabEtyqvn72voTrjRbBZ8HINxfvTWjRgpirlk_w/exec";
     }
 
     async addPrayerRecord(sheetName, rowData) {
@@ -87,179 +82,6 @@ class GoogleSheetsAPI {
 }
 
 const api = new GoogleSheetsAPI();
-
-// =============================
-// 📥 Load Manual Prayers Configuration
-// =============================
-async function loadManualPrayersConfig(forceReload = false) {
-    if (!forceReload && manualPrayersConfig) {
-        console.log('Using cached manual prayers config');
-        return manualPrayersConfig;
-    }
-    
-    try {
-        console.log('Loading manual prayers configuration...');
-        const response = await fetch(MANUAL_PRAYERS_URL);
-        const csvText = await response.text();
-        
-        // Parse CSV
-        const rows = csvText.split('\n');
-        const headers = rows[0].split(',');
-        
-        // Find column indices
-        const prayerIndex = headers.findIndex(h => h.toLowerCase().trim() === 'prayers');
-        const typeIndex = headers.findIndex(h => h.toLowerCase().trim() === 'type');
-        const optionsIndex = headers.findIndex(h => h.toLowerCase().trim() === 'options');
-        
-        if (prayerIndex === -1) {
-            console.error('CSV headers not found. Expected: prayers, type, options');
-            return [];
-        }
-        
-        const prayers = [];
-        
-        for (let i = 1; i < rows.length; i++) {
-            if (rows[i].trim() === '') continue;
-            
-            // Parse CSV line (handling quoted values)
-            let row = rows[i];
-            let values = [];
-            let inQuote = false;
-            let currentValue = '';
-            
-            for (let char of row) {
-                if (char === '"') {
-                    inQuote = !inQuote;
-                } else if (char === ',' && !inQuote) {
-                    values.push(currentValue.trim());
-                    currentValue = '';
-                } else {
-                    currentValue += char;
-                }
-            }
-            values.push(currentValue.trim());
-            
-            // Remove quotes from values
-            values = values.map(v => v.replace(/^"|"$/g, ''));
-            
-            const prayerName = values[prayerIndex];
-            const type = values[typeIndex] ? values[typeIndex].toLowerCase().trim() : 'option';
-            const optionsStr = values[optionsIndex] || '';
-            
-            if (prayerName) {
-                const prayerConfig = {
-                    name: prayerName,
-                    type: type,
-                    options: []
-                };
-                
-                if (type === 'option' && optionsStr) {
-                    // Parse options - could be comma-separated or semicolon-separated
-                    prayerConfig.options = optionsStr.split(/[,;]/).map(opt => opt.trim()).filter(opt => opt);
-                }
-                
-                prayers.push(prayerConfig);
-            }
-        }
-        
-        manualPrayersConfig = prayers;
-        console.log(`Loaded ${prayers.length} manual prayers`);
-        return prayers;
-    } catch (error) {
-        console.error('Error loading manual prayers config:', error);
-        return manualPrayersConfig || [];
-    }
-}
-
-// =============================
-// 🎨 Render Manual Prayers
-// =============================
-async function renderManualPrayers() {
-    const configs = await loadManualPrayersConfig();
-    const container = document.getElementById('manualPrayersContainer');
-    const section = document.getElementById('manualPrayersSection');
-    
-    if (!configs || configs.length === 0) {
-        section.classList.add('hidden');
-        return;
-    }
-    
-    section.classList.remove('hidden');
-    container.innerHTML = '';
-    
-    configs.forEach((config, index) => {
-        const card = document.createElement('div');
-        card.className = 'manual-card';
-        card.dataset.prayerIndex = index;
-        card.dataset.prayerName = config.name;
-        card.dataset.prayerType = config.type;
-        
-        const title = document.createElement('div');
-        title.className = 'manual-title';
-        title.innerHTML = `<i class="fas fa-star"></i><span>${config.name}</span>`;
-        card.appendChild(title);
-        
-        if (config.type === 'option' && config.options && config.options.length > 0) {
-            // Create option buttons
-            const optionsDiv = document.createElement('div');
-            optionsDiv.className = 'manual-options';
-            
-            config.options.forEach(option => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'manual-option-btn';
-                btn.dataset.value = option;
-                btn.textContent = option;
-                
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // Remove selected class from siblings
-                    optionsDiv.querySelectorAll('.manual-option-btn').forEach(b => {
-                        b.classList.remove('selected');
-                    });
-                    // Add selected class to clicked button
-                    this.classList.add('selected');
-                });
-                
-                optionsDiv.appendChild(btn);
-            });
-            
-            card.appendChild(optionsDiv);
-            
-            // Add hidden input for value
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.id = `manual_${index}`;
-            hiddenInput.name = `manual_${config.name.replace(/\s+/g, '_')}`;
-            hiddenInput.dataset.prayerName = config.name;
-            hiddenInput.dataset.prayerType = 'option';
-            card.appendChild(hiddenInput);
-            
-            // Update hidden input when option is selected
-            optionsDiv.addEventListener('click', (e) => {
-                const selectedBtn = optionsDiv.querySelector('.manual-option-btn.selected');
-                if (selectedBtn) {
-                    hiddenInput.value = selectedBtn.dataset.value;
-                }
-            });
-            
-        } else {
-            // Text input type
-            const textInput = document.createElement('input');
-            textInput.type = 'text';
-            textInput.className = 'manual-text-input';
-            textInput.id = `manual_${index}`;
-            textInput.name = `manual_${config.name.replace(/\s+/g, '_')}`;
-            textInput.placeholder = `Enter ${config.name}...`;
-            textInput.dataset.prayerName = config.name;
-            textInput.dataset.prayerType = 'text';
-            
-            card.appendChild(textInput);
-        }
-        
-        container.appendChild(card);
-    });
-}
 
 // =============================
 // 📥 Load User Data from CSV (with caching)
@@ -449,12 +271,9 @@ async function hasStudentSubmittedToday(studentClass, studentName, date) {
 // 🔑 Login Functions
 // =============================
 
-// Preload user data and manual prayers config as soon as possible
-async function preloadData() {
-    await Promise.all([
-        loadUsersFromCSV(),
-        loadManualPrayersConfig()
-    ]);
+// Preload user data as soon as possible
+async function preloadUserData() {
+    await loadUsersFromCSV();
 }
 
 // Load student names on page load
@@ -463,8 +282,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const nameSelect = document.getElementById('studentName');
     nameSelect.innerHTML = '<option value="" disabled selected>Loading students...</option>';
     
-    // Preload data in background
-    preloadData().then(() => {
+    // Preload user data in background
+    preloadUserData().then(() => {
         // Once loaded, update the dropdown message
         if (nameSelect.value === 'Loading students...') {
             nameSelect.innerHTML = '<option value="" disabled selected>-- First Select Class --</option>';
@@ -622,9 +441,6 @@ async function login(event) {
         // Ensure sheet exists
         await api.ensureSheetExists(currentClassSheet);
         
-        // Render manual prayers
-        await renderManualPrayers();
-        
         // Show dashboard
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('dashboardPage').classList.remove('hidden');
@@ -667,10 +483,6 @@ function logout() {
     // Reset name dropdown to initial state
     const nameSelect = document.getElementById('studentName');
     nameSelect.innerHTML = '<option value="" disabled selected>-- First Select Class --</option>';
-    
-    // Hide manual prayers section
-    document.getElementById('manualPrayersSection').classList.add('hidden');
-    document.getElementById('manualPrayersContainer').innerHTML = '';
     
     // Show login page
     document.getElementById('dashboardPage').classList.add('hidden');
@@ -730,19 +542,6 @@ function resetPrayerForm() {
         }
     });
     
-    // Reset manual prayer inputs
-    document.querySelectorAll('#manualPrayersContainer input[type="hidden"]').forEach(input => {
-        input.value = '';
-    });
-    
-    document.querySelectorAll('#manualPrayersContainer .manual-option-btn').forEach(btn => {
-        btn.classList.remove('selected');
-    });
-    
-    document.querySelectorAll('#manualPrayersContainer .manual-text-input').forEach(input => {
-        input.value = '';
-    });
-    
     // Enable submit button
     const submitBtn = document.getElementById('submitPrayerBtn');
     submitBtn.disabled = false;
@@ -783,41 +582,6 @@ function showSuccessAlertWithLogout(message, onComplete) {
     });
 }
 
-// Collect all manual prayer data
-function collectManualPrayerData() {
-    const manualData = [];
-    const container = document.getElementById('manualPrayersContainer');
-    
-    if (!container) return manualData;
-    
-    // Get all cards
-    const cards = container.querySelectorAll('.manual-card');
-    
-    cards.forEach(card => {
-        const prayerName = card.dataset.prayerName;
-        const prayerType = card.dataset.prayerType;
-        let value = '';
-        
-        if (prayerType === 'option') {
-            const selectedBtn = card.querySelector('.manual-option-btn.selected');
-            value = selectedBtn ? selectedBtn.dataset.value : '';
-        } else {
-            const textInput = card.querySelector('.manual-text-input');
-            value = textInput ? textInput.value.trim() : '';
-        }
-        
-        if (value) {
-            manualData.push({
-                name: prayerName,
-                type: prayerType,
-                value: value
-            });
-        }
-    });
-    
-    return manualData;
-}
-
 async function submitPrayerForm(event) {
     event.preventDefault();
     
@@ -834,9 +598,6 @@ async function submitPrayerForm(event) {
         return;
     }
     
-    // Collect manual prayer data
-    const manualData = collectManualPrayerData();
-    
     // Show loading state
     const submitBtn = document.getElementById('submitPrayerBtn');
     const originalText = submitBtn.innerHTML;
@@ -849,7 +610,7 @@ async function submitPrayerForm(event) {
         const dateStr = now.toISOString().split('T')[0];
         const timeStr = now.toLocaleTimeString('en-GB');
         
-        // Prepare row data: date, time, name, class, subh, zuhr, asr, magrib, isha, ...manual prayers
+        // Prepare row data: date, time, name, class, subh, zuhr, asr, magrib, isha
         const rowData = [
             dateStr, 
             timeStr, 
@@ -862,11 +623,6 @@ async function submitPrayerForm(event) {
             isha
         ];
         
-        // Add manual prayer values
-        manualData.forEach(item => {
-            rowData.push(item.value);
-        });
-        
         console.log('Submitting prayer data:', {
             date: dateStr,
             time: timeStr,
@@ -876,8 +632,7 @@ async function submitPrayerForm(event) {
             zuhr: zuhr,
             asr: asr,
             magrib: magrib,
-            isha: isha,
-            manual: manualData
+            isha: isha
         });
         
         // Add record to sheet
@@ -895,17 +650,7 @@ async function submitPrayerForm(event) {
             const magribText = getPrayerStatusText(magrib);
             const ishaText = getPrayerStatusText(isha);
             
-            let message = `Your prayer status has been recorded.\n\n📅 Date: ${new Date().toLocaleDateString()}\n\n`;
-            message += `Subh: ${subhText}\nZuhr: ${zuhrText}\nAsr: ${asrText}\nMagrib: ${magribText}\nIsha: ${ishaText}`;
-            
-            if (manualData.length > 0) {
-                message += `\n\n📋 Additional Prayers/Activities:`;
-                manualData.forEach(item => {
-                    message += `\n• ${item.name}: ${item.value}`;
-                });
-            }
-            
-            message += `\n\nYou will now be logged out.`;
+            const message = `Your prayer status has been recorded.\n\n📅 Date: ${new Date().toLocaleDateString()}\n\nSubh: ${subhText}\nZuhr: ${zuhrText}\nAsr: ${asrText}\nMagrib: ${magribText}\nIsha: ${ishaText}\n\nYou will now be logged out.`;
             
             // Show success popup and logout after OK
             showSuccessAlertWithLogout(message, function() {
@@ -924,10 +669,6 @@ async function submitPrayerForm(event) {
                 // Reset class dropdown
                 const classSelect = document.getElementById('studentClass');
                 classSelect.value = '';
-                
-                // Hide manual prayers section
-                document.getElementById('manualPrayersSection').classList.add('hidden');
-                document.getElementById('manualPrayersContainer').innerHTML = '';
                 
                 // Show login page
                 document.getElementById('dashboardPage').classList.add('hidden');
@@ -1003,9 +744,8 @@ document.addEventListener("keydown", function(e) {
 });
 
 // Console welcome message
-console.log('%c🌙 Tharbiyya - 5 Daily Prayers Tracker + Manual Prayers 🌙', 'color: #059669; font-size: 16px; font-weight: bold;');
+console.log('%c🌙 Tharbiyya - 5 Daily Prayers Tracker 🌙', 'color: #059669; font-size: 16px; font-weight: bold;');
 console.log('%cPrayer Values: Adā\' = 2, Qaḍā\' = 1, No = 0', 'color: #1f2937; font-size: 12px;');
 console.log('%cPrayer Order: Subh (Fajr) → Zuhr → Asr → Magrib → Isha', 'color: #1f2937; font-size: 12px;');
 console.log('%c⚠️ Students can only submit ONCE per day!', 'color: #dc2626; font-size: 12px; font-weight: bold;');
 console.log('%c⚡ Optimized for fast loading with caching', 'color: #059669; font-size: 12px; font-weight: bold;');
-console.log('%c📋 Manual prayers loaded from CSV configuration', 'color: #6366f1; font-size: 12px;');
